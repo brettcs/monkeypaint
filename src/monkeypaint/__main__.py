@@ -1,7 +1,9 @@
 import argparse
 import configparser
+import enum
 import itertools
 import logging
+import logging.config
 import os
 import random
 import signal
@@ -10,6 +12,7 @@ import types
 
 from typing import (
     TYPE_CHECKING,
+    Any,
     Iterator,
     NoReturn,
     Optional,
@@ -62,12 +65,37 @@ class ExceptHook:
         os._exit(exitcode)
 
 
+class LogLevel(enum.IntEnum):
+    CRIT = logging.CRITICAL
+    CRITICAL = CRIT
+    DEBUG = logging.DEBUG
+    ERROR = logging.ERROR
+    FATAL = CRITICAL
+    INFO = logging.INFO
+    INFORMATION = INFO
+    NOTE = INFO
+    NOTICE = INFO
+    WARN = logging.WARNING
+    WARNING = WARN
+
+
 class Config(configparser.ConfigParser):
     def __init__(self) -> None:
         super().__init__(allow_no_value=True)
         self['ColorAPI'] = {
             'mode': 'analogic',
             'fn mode': 'monochrome',
+        }
+        self['LogFormatter default'] = {
+            'format': '%%(name)s: %%(levelname)s: %%(message)s',
+        }
+        self['LogHandler default'] = {
+            'class': 'logging.StreamHandler',
+            'formatter': 'default',
+        }
+        self['Logging'] = {
+            'handlers': 'default',
+            'level': 'WARNING',
         }
         self['Output'] = {
             'path': '-',
@@ -108,12 +136,36 @@ class Config(configparser.ConfigParser):
         b = random.randint(max(0, minimum_seed - r - g), 255)
         return Color(r, g, b)
 
+    def setup_logging(self, level: Optional[str]=None) -> None:
+        root = {
+            'handlers': self['Logging']['handlers'].split(),
+            'level': (self['Logging']['level'] if level is None else level).upper(),
+        }
+        return logging.config.dictConfig({
+            'disable_existing_loggers': False,
+            'formatters': {
+                fkey: section
+                for sname, section in self.items()
+                if (fkey := sname.removeprefix('LogFormatter ')) != sname
+            },
+            'handlers': {
+                hkey: section
+                for sname, section in self.items()
+                if (hkey := sname.removeprefix('LogHandler ')) != sname
+            },
+            'root': root,
+            'version': 1,
+        })
+
 
 def parse_arguments(arglist: Optional[Sequence[str]]=None) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--configuration-file', '--config-file', '-C',
         default=os.path.expanduser('~/.config/monkeypaint/config.ini'),
+    )
+    parser.add_argument(
+        '--log-level',
     )
     parser.add_argument(
         '--output-file', '-O',
@@ -123,6 +175,11 @@ def parse_arguments(arglist: Optional[Sequence[str]]=None) -> argparse.Namespace
         nargs='?',
     )
     args = parser.parse_args()
+    if args.log_level is not None:
+        try:
+            args.log_level = LogLevel[args.log_level.upper()].name
+        except KeyError:
+            parser.error(f"unknown log level {args.log_level!r}")
     args.int_seed = None
     args.hex_seed = None
     if args.seed is not None:
@@ -146,6 +203,7 @@ def main(arglist: Optional[Sequence[str]]=None) -> int:
     config = Config()
     with open(args.configuration_file) as conffile:
         config.read_file(conffile)
+    config.setup_logging()
 
     seed_color: Color = args.hex_seed or config.random_seed(args.int_seed)
     color_groups = KeyColorGroups.from_config(config)
