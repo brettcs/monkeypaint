@@ -122,16 +122,10 @@ def parse_arguments(arglist: Optional[Sequence[str]]=None) -> argparse.Namespace
         'seed',
         nargs='?',
     )
-    return parser.parse_args()
-
-def main(arglist: Optional[Sequence[str]]=None) -> int:
-    args = parse_arguments(arglist)
-    config = Config()
-    with open(args.configuration_file) as conffile:
-        config.read_file(conffile)
-    if args.seed is None:
-        seed_color = config.random_seed()
-    else:
+    args = parser.parse_args()
+    args.int_seed = None
+    args.hex_seed = None
+    if args.seed is not None:
         try:
             seed = int(args.seed)
         except ValueError:
@@ -139,9 +133,21 @@ def main(arglist: Optional[Sequence[str]]=None) -> int:
         else:
             hex_seed = not (0 <= seed <= (255 * 3))
         if hex_seed:
-            seed_color = Color.from_hex(args.seed)
+            try:
+                args.hex_seed = Color.from_hex(args.seed)
+            except ValueError:
+                parser.error(f"seed color {args.seed!r} is not hex or a minimum color")
         else:
-            seed_color = config.random_seed(seed)
+            args.int_seed = seed
+    return args
+
+def main(arglist: Optional[Sequence[str]]=None) -> int:
+    args = parse_arguments(arglist)
+    config = Config()
+    with open(args.configuration_file) as conffile:
+        config.read_file(conffile)
+
+    seed_color: Color = args.hex_seed or config.random_seed(args.int_seed)
     color_groups = KeyColorGroups.from_config(config)
     logger.info("generating a palette from %s with %s colors",
                 seed_color, color_groups.group_count)
