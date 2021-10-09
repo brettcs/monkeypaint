@@ -28,6 +28,8 @@ if TYPE_CHECKING:
 from . import Color, KeyColorGroups, logger
 from requests.exceptions import HTTPError, RequestException
 
+_run_main = __name__ == '__main__'
+
 class ExceptHook:
     def __init__(self, logger: logging.Logger=logger, level: int=logging.CRITICAL) -> None:
         self.logger = logger
@@ -199,11 +201,14 @@ def parse_arguments(arglist: Optional[Sequence[str]]=None) -> argparse.Namespace
     return args
 
 def main(arglist: Optional[Sequence[str]]=None) -> int:
+    if _run_main:
+        sys.excepthook = ExceptHook()
     args = parse_arguments(arglist)
     config = Config()
     with open(args.configuration_file) as conffile:
         config.read_file(conffile)
-    config.setup_logging()
+    if _run_main:
+        config.setup_logging()
 
     seed_color: Color = args.hex_seed or config.random_seed(args.int_seed)
     color_groups = KeyColorGroups.from_config(config)
@@ -216,6 +221,5 @@ def main(arglist: Optional[Sequence[str]]=None) -> int:
                 out_file.write(line)
     return os.EX_OK
 
-if __name__ == '__main__':
-    sys.excepthook = ExceptHook()
+if _run_main:
     exit(main())
