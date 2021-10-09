@@ -203,7 +203,7 @@ def parse_arguments(arglist: Optional[Sequence[str]]=None) -> argparse.Namespace
         description="Generate backlight palettes for the Kinesis Freestyle Edge",
     )
     parser.add_argument(
-        '--configuration-file', '--config-file', '-C',
+        '--configuration-file', '-C',
         default=os.path.expanduser('~/.config/monkeypaint/config.ini'),
     )
     parser.add_argument(
