@@ -30,6 +30,26 @@ from requests.exceptions import HTTPError, RequestException
 
 _run_main = __name__ == '__main__'
 
+class ConfigurationError(ValueError):
+    def __init__(self,
+                 error: str,
+                 opt_name: Optional[str]=None,
+                 sect_name: Optional[str]=None,
+                 ) -> None:
+        super().__init__(error, opt_name, sect_name)
+        self.error = error
+        self.opt_name = opt_name
+        self.sect_name = sect_name
+
+    def __str__(self) -> str:
+        if self.opt_name is None:
+            return self.error
+        elif self.sect_name is None:
+            return f'{self.opt_name!r} {self.error}'
+        else:
+            return f'{self.opt_name!r} from {self.sect_name} {self.error}'
+
+
 class ExceptHook:
     def __init__(self, logger: logging.Logger=logger, level: int=logging.CRITICAL) -> None:
         self.logger = logger
@@ -53,6 +73,9 @@ class ExceptHook:
                 req=exc_value.request,
             )
             exitcode = os.EX_TEMPFAIL
+        elif isinstance(exc_value, ConfigurationError):
+            msg = f"configuration error: {exc_value}"
+            exitcode = os.EX_CONFIG
         elif isinstance(exc_value, OSError):
             msg = "I/O error: {e.filename}: {e.strerror}".format(e=exc_value)
             exitcode = os.EX_IOERR
@@ -107,6 +130,19 @@ class Config(configparser.ConfigParser):
         }
         self._color_maker: Optional[colorapi.ColorAPIClient] = None
 
+    @staticmethod
+    def parse_minimum_seed(s: str, sect_name: str='[Palette]') -> int:
+        try:
+            seed = int(s)
+        except ValueError as error:
+            raise ConfigurationError(error.args[0], 'minimum seed', sect_name)
+        else:
+            max_seed = 255 * 3
+            if 0 <= seed <= max_seed:
+                return seed
+            else:
+                raise ConfigurationError(f"not in range 0-{max_seed}", 'minimum seed', sect_name)
+
     def get_palette(self, seed: Color, count: int, *, fn: bool=False) -> Iterator[Color]:
         if self._color_maker is None:
             from . import colorapi
@@ -131,7 +167,7 @@ class Config(configparser.ConfigParser):
 
     def random_seed(self, minimum_seed: Optional[int]=None) -> Color:
         if minimum_seed is None:
-            minimum_seed = int(self['Palette']['minimum seed'])
+            minimum_seed = self.parse_minimum_seed(self['Palette']['minimum seed'])
         minimum_seed = min(255 * 3, minimum_seed)
         r = random.randint(max(0, minimum_seed - 255 * 2), 255)
         g = random.randint(max(0, minimum_seed - r - 255), 255)
@@ -186,12 +222,8 @@ def parse_arguments(arglist: Optional[Sequence[str]]=None) -> argparse.Namespace
     args.hex_seed = None
     if args.seed is not None:
         try:
-            seed = int(args.seed)
-        except ValueError:
-            hex_seed = True
-        else:
-            hex_seed = not (0 <= seed <= (255 * 3))
-        if hex_seed:
+            seed = Config.parse_minimum_seed(args.seed, 'arguments')
+        except ConfigurationError as error:
             try:
                 args.hex_seed = Color.from_hex(args.seed)
             except ValueError:
