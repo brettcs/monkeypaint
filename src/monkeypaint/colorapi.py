@@ -16,6 +16,8 @@ HTTPGetFunc = Callable[..., requests.Response]
 logger = logger.getChild('colorapi')
 
 class ColorAPIClient:
+    HEADERS = requests.utils.default_headers()
+    HEADERS['User-Agent'] = f"monkeypaint/0.1 ({HEADERS['User-Agent']})"
     URL = 'https://www.thecolorapi.com/scheme'
 
     def __init__(self, get_func: HTTPGetFunc=requests.get, url: str=URL) -> None:
@@ -29,7 +31,7 @@ class ColorAPIClient:
             'hex': seed.hex_format(''),
             'mode': mode,
         }
-        response = self.get_func(self.url, params=params)
+        response = self.get_func(self.url, headers=self.HEADERS, params=params)
         response.raise_for_status()
         for color_response in response.json()['colors']:
             color_rgb = color_response['rgb']
