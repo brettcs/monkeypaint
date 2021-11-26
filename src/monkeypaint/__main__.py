@@ -200,21 +200,32 @@ def parse_arguments(arglist: Optional[Sequence[str]]=None) -> argparse.Namespace
     parser = argparse.ArgumentParser(
         prog='monkeypaint',
         usage="%(prog)s [options] [hex color or minimum seed]",
-        description="Generate backlight palettes for the Kinesis Freestyle Edge",
+        description="Generate lighting profiles for the Kinesis Freestyle Edge",
     )
     parser.add_argument(
         '--configuration-file', '-C',
+        metavar='PATH',
         default=os.path.expanduser('~/.config/monkeypaint/config.ini'),
+        help="Path of the configuration file to read",
     )
     parser.add_argument(
-        '--log-level',
+        '--log-level', '--loglevel',
+        metavar='LEVEL',
+        help="Show log messages at this level and above."
+        " Choices are debug, info, warning, error, and critical."
+        " Default info.",
     )
     parser.add_argument(
         '--output-file', '-O',
+        metavar='PATH',
+        help="Path of the lighting profile output. Default stdout.",
     )
     parser.add_argument(
         'seed',
         nargs='?',
+        help="Seed color for the generated palette. You can specify a number"
+        " between 0-765 to pick a random color with at least that much RGB; or"
+        " specify a color with a 3- or 6-digit hex color code.",
     )
     args = parser.parse_args()
     if args.log_level is not None:
