@@ -30,6 +30,15 @@ KeyGroup = str
 
 logger = logging.getLogger('monkeypaint')
 
+class _Version(NamedTuple):
+    major: int
+    minor: int
+    micro: int = 0
+
+    def __str__(self) -> str:
+        return '.'.join(str(n) for n in self)
+VERSION = _Version(0, 1, 0)
+
 KEY_ORDER: Sequence[Key] = [
     'hk0',
     'esc',
