@@ -10,13 +10,15 @@ import signal
 import sys
 import types
 
+from collections.abc import (
+    Iterator,
+    Sequence,
+)
 from typing import (
     TYPE_CHECKING,
     Any,
-    Iterator,
     NoReturn,
     Optional,
-    Sequence,
     TextIO,
     Type,
     Union,
