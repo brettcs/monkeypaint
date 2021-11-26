@@ -244,7 +244,7 @@ def main(arglist: Optional[Sequence[str]]=None) -> int:
     with open(args.configuration_file) as conffile:
         config.read_file(conffile)
     if _run_main:
-        config.setup_logging()
+        config.setup_logging(args.log_level)
 
     seed_color: Color = args.hex_seed or config.random_seed(args.int_seed)
     color_groups = KeyColorGroups.from_config(config)
