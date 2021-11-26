@@ -199,8 +199,15 @@ class Config(configparser.ConfigParser):
 def parse_arguments(arglist: Optional[Sequence[str]]=None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog='monkeypaint',
-        usage="%(prog)s [options] [hex color or minimum seed]",
+        usage="%(prog)s [-c SEED] [other options]",
         description="Generate lighting profiles for the Kinesis Freestyle Edge",
+    )
+    parser.add_argument(
+        '--color-seed', '-c',
+        metavar='SEED',
+        help="Seed color for the generated palette. You can specify a number"
+        " between 0-765 to pick a random color with at least that much RGB; or"
+        " specify a color with a 3- or 6-digit hex color code.",
     )
     parser.add_argument(
         '--configuration-file', '-C',
@@ -220,13 +227,6 @@ def parse_arguments(arglist: Optional[Sequence[str]]=None) -> argparse.Namespace
         metavar='PATH',
         help="Path of the lighting profile output. Default stdout.",
     )
-    parser.add_argument(
-        'seed',
-        nargs='?',
-        help="Seed color for the generated palette. You can specify a number"
-        " between 0-765 to pick a random color with at least that much RGB; or"
-        " specify a color with a 3- or 6-digit hex color code.",
-    )
     args = parser.parse_args()
     if args.log_level is not None:
         try:
@@ -235,16 +235,14 @@ def parse_arguments(arglist: Optional[Sequence[str]]=None) -> argparse.Namespace
             parser.error(f"unknown log level {args.log_level!r}")
     args.int_seed = None
     args.hex_seed = None
-    if args.seed is not None:
+    if args.color_seed is not None:
         try:
-            seed = Config.parse_minimum_seed(args.seed, 'arguments')
+            args.int_seed = Config.parse_minimum_seed(args.color_seed, 'arguments')
         except ConfigurationError as error:
             try:
-                args.hex_seed = Color.from_hex(args.seed)
+                args.hex_seed = Color.from_hex(args.color_seed)
             except ValueError:
-                parser.error(f"seed color {args.seed!r} is not hex or a minimum color")
-        else:
-            args.int_seed = seed
+                parser.error(f"seed color {args.color_seed!r} is not hex or a minimum color")
     return args
 
 def main(arglist: Optional[Sequence[str]]=None) -> int:
