@@ -120,7 +120,7 @@ class Config(configparser.ConfigParser):
         }
         self['Logging'] = {
             'handlers': 'default',
-            'level': 'WARNING',
+            'level': 'INFO',
         }
         self['Output'] = {
             'path': '-',
