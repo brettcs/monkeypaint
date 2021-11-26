@@ -12,6 +12,7 @@ import types
 
 from collections.abc import (
     Iterator,
+    Mapping,
     Sequence,
 )
 from typing import (
@@ -21,6 +22,7 @@ from typing import (
     Optional,
     TextIO,
     Type,
+    TypeVar,
     Union,
 )
 
@@ -29,6 +31,9 @@ if TYPE_CHECKING:
 
 from . import Color, KeyColorGroups, logger
 from requests.exceptions import HTTPError, RequestException
+
+Section = Mapping[str, str]
+T = TypeVar('T')
 
 _run_main = __name__ == '__main__'
 
@@ -132,6 +137,12 @@ class Config(configparser.ConfigParser):
         }
         self._color_maker: Optional[colorapi.ColorAPIClient] = None
 
+    def _sections_prefixed(self, prefix: str) -> Iterator[tuple[str, Section]]:
+        prefix_len = len(prefix)
+        for key, value in self.items():
+            if key.startswith(prefix):
+                yield (key[prefix_len:], value)
+
     @staticmethod
     def parse_minimum_seed(s: str, sect_name: str='[Palette]') -> int:
         try:
@@ -183,16 +194,8 @@ class Config(configparser.ConfigParser):
         }
         return logging.config.dictConfig({
             'disable_existing_loggers': False,
-            'formatters': {
-                fkey: section
-                for sname, section in self.items()
-                if (fkey := sname.removeprefix('LogFormatter ')) != sname
-            },
-            'handlers': {
-                hkey: section
-                for sname, section in self.items()
-                if (hkey := sname.removeprefix('LogHandler ')) != sname
-            },
+            'formatters': dict(self._sections_prefixed('LogFormatter ')),
+            'handlers': dict(self._sections_prefixed('LogHandler ')),
             'root': root,
             'version': 1,
         })
