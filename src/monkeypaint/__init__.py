@@ -215,6 +215,13 @@ class Color(NamedTuple):
 
 
 class KeyColorGroups:
+    DEFAULT_CONFIG = {
+        'Primary': [KeyAliases.alphanumeric.name, KeyAliases.punctuation.name, KeyAliases.space.name],
+        'Secondary': [KeyAliases.editing.name, KeyAliases.function.name, KeyAliases.meta.name],
+        'Tertiary': [KeyAliases.hotkeys.name, KeyAliases.navigation.name],
+        'Special': [KeyAliases.actions.name, KeyAliases.arrows.name],
+    }
+
     def __init__(self,
                  color_groups: Mapping[KeyGroup, Sequence[Key]],
                  unassigned_pre_group: KeyGroup,
@@ -271,13 +278,11 @@ class KeyColorGroups:
                 key for key, value in group_config.items() if value is None
             ] for group_name, group_config in config.items()
         }
-        try:
-            post_group = max(color_groups)
-        except ValueError:
-            post_group = ''
-        if post_group:
-            post_group += post_group[-1]
-        return cls(color_groups, '', post_group)
+        if not any(color_groups.values()):
+            logger.info("using default key groupings")
+            color_groups = cls.DEFAULT_CONFIG
+        post_group = max(color_groups)
+        return cls(color_groups, '', post_group + post_group[-1])
 
     def led_lines(self, colors: Iterable[Color], *, fn: bool=False) -> Iterator[str]:
         color_map = dict(zip(self._color_groups, colors))
