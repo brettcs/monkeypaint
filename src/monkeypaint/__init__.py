@@ -88,12 +88,17 @@ class KeyAliases(enum.Enum):
     alphabet = alpha
     alphanum = alnum
     alphanumeric = alnum
+    apostrophe = frozenset({'apos'})
     arrow = frozenset({'up', 'lft', 'dwn', 'rght'})
     arrows = arrow
     backlight = frozenset({'hk10'})
     backslash = frozenset('\\')
     backspace = frozenset({'bspc'})
     bslash = backslash
+    cbrace = frozenset({'cbrk'})
+    cbracket = cbrace
+    closebrace = cbrace
+    closebracket = cbrace
     comma = frozenset({'com'})
     dash = frozenset({'hyph'})
     digit = frozenset(string.digits)
@@ -123,9 +128,11 @@ class KeyAliases(enum.Enum):
     func = frozenset(f'F{n}' for n in range(1, 13))
     function = func
     fslash = forwardslash
+    grave = frozenset({'tilde'})
     hot = frozenset(f'hk{n}' for n in range(11))
     hotkey = hot
     hotkeys = hot
+    hyphen = dash
     led = backlight
     light = backlight
     lshift = frozenset({'lshft'})
@@ -137,6 +144,10 @@ class KeyAliases(enum.Enum):
     navigation = nav
     number = digit
     numbers = digit
+    obrace = frozenset({'obrk'})
+    obracket = obrace
+    openbrace = obrace
+    openbracket = obrace
     period = dot
     pagedown = frozenset({'pdn'})
     pagedn = pagedown
@@ -154,6 +165,7 @@ class KeyAliases(enum.Enum):
     })
     punct = punc
     punctuation = punc
+    quote = apostrophe
     row1 = frozenset(KEY_ORDER[0:17])
     row2 = frozenset(KEY_ORDER[17:34])
     row3 = frozenset(KEY_ORDER[34:51])
