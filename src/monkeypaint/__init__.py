@@ -138,6 +138,12 @@ class KeyAliases(enum.Enum):
     number = digit
     numbers = digit
     period = dot
+    pagedown = frozenset({'pdn'})
+    pagedn = pagedown
+    pageup = frozenset({'pup'})
+    pgdn = pagedown
+    pgdown = pagedown
+    pgup = pageup
     prtsc = frozenset({'prnt'})
     prtscr = prtsc
     punc = frozenset({
