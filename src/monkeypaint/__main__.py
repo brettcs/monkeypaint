@@ -133,6 +133,7 @@ class Config(configparser.ConfigParser):
             'path': '-',
         }
         self['Palette'] = {
+            'group prefix': 'Group',
             'minimum seed': '384',
         }
         self._color_maker: Optional[colorapi.ColorAPIClient] = None
@@ -164,6 +165,21 @@ class Config(configparser.ConfigParser):
             )
         mode = self['ColorAPI']['fn mode' if fn else 'mode']
         return self._color_maker.get_palette(seed, count, mode)
+
+    def key_color_groups(self, group_prefix: Optional[str]=None) -> Mapping[str, Section]:
+        if group_prefix is None:
+            group_prefix = self['Palette']['group prefix']
+        groups = dict(
+            (key, value)
+            for key, section in self._sections_prefixed(group_prefix)
+            if (value := {k: v for k, v in section.items() if v is None})
+        )
+        if not groups:
+            logger.warning(
+                "did not find any key groupings defined under the prefix %r",
+                group_prefix,
+            )
+        return groups
 
     def output_file(self, path_str: Optional[str], stdout_fd: Optional[int]=None) -> TextIO:
         if path_str is None:
@@ -204,7 +220,7 @@ class Config(configparser.ConfigParser):
 def parse_arguments(arglist: Optional[Sequence[str]]=None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog='monkeypaint',
-        usage="%(prog)s [-c SEED] [other options]",
+        usage="%(prog)s [-c SEED] [-g GROUP] [other options]",
         description="Generate lighting profiles for the Kinesis Freestyle Edge",
     )
     parser.add_argument(
@@ -213,6 +229,12 @@ def parse_arguments(arglist: Optional[Sequence[str]]=None) -> argparse.Namespace
         help="Seed color for the generated palette. You can specify a number"
         " between 0-765 to pick a random color with at least that much RGB; or"
         " specify a color with a 3- or 6-digit hex color code.",
+    )
+    parser.add_argument(
+        '--configuration-group', '-g',
+        metavar='GROUP',
+        help="Read key groupings from configuration file sections that start"
+        " with this word. Default 'Group'.",
     )
     parser.add_argument(
         '--configuration-file', '-C',
@@ -261,7 +283,7 @@ def main(arglist: Optional[Sequence[str]]=None) -> int:
         config.setup_logging(args.log_level)
 
     seed_color: Color = args.hex_seed or config.random_seed(args.int_seed)
-    color_groups = KeyColorGroups.from_config(config)
+    color_groups = KeyColorGroups.from_config(config.key_color_groups(args.configuration_group))
     logger.info("generating a palette from %s with %s colors",
                 seed_color, color_groups.group_count)
     with config.output_file(args.output_file) as out_file:
