@@ -126,7 +126,7 @@ class Config(configparser.ConfigParser):
             'path': '-',
         }
         self['Palette'] = {
-            'minimum seed': '192',
+            'minimum seed': '384',
         }
         self._color_maker: Optional[colorapi.ColorAPIClient] = None
 
