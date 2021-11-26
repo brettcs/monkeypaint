@@ -111,6 +111,8 @@ class KeyAliases(enum.Enum):
     digit = frozenset(string.digits)
     digits = digit
     dot = frozenset({'per'})
+    down = frozenset({'dwn'})
+    downarrow = down
     edit = frozenset({'tab', 'bspc', 'del', 'ent'})
     editing = edit
     edits = edit
@@ -141,6 +143,8 @@ class KeyAliases(enum.Enum):
     hotkeys = hot
     hyphen = dash
     led = backlight
+    left = frozenset({'lft'})
+    leftarrow = left
     light = backlight
     lshift = frozenset({'lshft'})
     lspace = frozenset({'lspc'})
@@ -173,6 +177,8 @@ class KeyAliases(enum.Enum):
     punct = punc
     punctuation = punc
     quote = apostrophe
+    right = frozenset({'rght'})
+    rightarrow = right
     row1 = frozenset(KEY_ORDER[0:17])
     row2 = frozenset(KEY_ORDER[17:34])
     row3 = frozenset(KEY_ORDER[34:51])
@@ -182,6 +188,7 @@ class KeyAliases(enum.Enum):
     rshift = frozenset({'rshft'})
     rspace = frozenset({'rspc'})
     space = frozenset({'lspc', 'rspc'})
+    uparrow = frozenset({'up'})
     win = frozenset({'lwin'})
     windows = win
 
