@@ -1,3 +1,10 @@
+# This file is part of Monkeypaint
+#   <https://brettcsmith.org/monkeypaint>
+# Copyright © 2021 Brett Smith <brettcsmith@brettcsmith.org>
+# You may use, share, and modify this software under the terms of the
+# GNU Affero General Public License version 3
+#   <https://opensource.org/licenses/AGPL-3.0>
+
 import collections
 import enum
 import logging
