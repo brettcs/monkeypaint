@@ -149,6 +149,15 @@ class KeyAliases(enum.Enum):
     grave = frozenset({'tilde'})
     hot = frozenset(f'hk{n}' for n in range(11))
     hotkey = hot
+    hotkey0 = frozenset({'hk0'})
+    hotkey1 = frozenset({'hk1'})
+    hotkey2 = frozenset({'hk2'})
+    hotkey3 = frozenset({'hk3'})
+    hotkey4 = frozenset({'hk4'})
+    hotkey5 = frozenset({'hk5'})
+    hotkey6 = frozenset({'hk6'})
+    hotkey7 = frozenset({'hk7'})
+    hotkey8 = frozenset({'hk8'})
     hotkeys = hot
     hyphen = dash
     led = backlight
