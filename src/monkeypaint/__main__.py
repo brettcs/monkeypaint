@@ -22,6 +22,7 @@ from collections.abc import (
     Mapping,
     Sequence,
 )
+from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -246,7 +247,6 @@ def parse_arguments(arglist: Optional[Sequence[str]]=None) -> argparse.Namespace
     parser.add_argument(
         '--configuration-file', '-C',
         metavar='PATH',
-        default=os.path.expanduser('~/.config/monkeypaint/config.ini'),
         help="Path of the configuration file to read",
     )
     parser.add_argument(
@@ -262,11 +262,28 @@ def parse_arguments(arglist: Optional[Sequence[str]]=None) -> argparse.Namespace
         help="Path of the lighting profile output. Default stdout.",
     )
     args = parser.parse_args()
+
+    if args.configuration_file is None:
+        import appdirs  # type:ignore[import]
+        config_dirs: list[Path] = []
+        if xdg_config_dirs := os.environ.get('XDG_CONFIG_DIRS'):
+            xdg_config_paths = [Path(s, 'monkeypaint') for s in xdg_config_dirs.split(':')]
+            config_dirs.extend(p for p in xdg_config_paths if p.is_absolute())
+        config_dirs.append(Path(appdirs.user_config_dir('monkeypaint', roaming=True)))
+        for dir_path in config_dirs:
+            config_path = dir_path / 'config.ini'
+            if config_path.exists():
+                args.configuration_file = config_path
+                break
+        else:
+            args.configuration_file = os.devnull
+
     if args.log_level is not None:
         try:
             args.log_level = LogLevel[args.log_level.upper()].name
         except KeyError:
             parser.error(f"unknown log level {args.log_level!r}")
+
     args.int_seed = None
     args.hex_seed = None
     if args.color_seed is not None:
@@ -277,6 +294,7 @@ def parse_arguments(arglist: Optional[Sequence[str]]=None) -> argparse.Namespace
                 args.hex_seed = Color.from_hex(args.color_seed)
             except ValueError:
                 parser.error(f"seed color {args.color_seed!r} is not hex or a minimum color")
+
     return args
 
 def main(arglist: Optional[Sequence[str]]=None) -> int:
@@ -288,6 +306,7 @@ def main(arglist: Optional[Sequence[str]]=None) -> int:
         config.read_file(conffile)
     if _run_main:
         config.setup_logging(args.log_level)
+    logger.debug("read configuration file %s", args.configuration_file)
 
     seed_color: Color = args.hex_seed or config.random_seed(args.int_seed)
     color_groups = KeyColorGroups.from_config(config.key_color_groups(args.configuration_group))
