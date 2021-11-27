@@ -146,11 +146,12 @@ class Config(configparser.ConfigParser):
         }
         self._color_maker: Optional[colorapi.ColorAPIClient] = None
 
-    def _sections_prefixed(self, prefix: str) -> Iterator[tuple[str, Section]]:
-        prefix_len = len(prefix)
+    def _sections_prefixed(self, prefix: str, subslice: Optional[slice]=None) -> Iterator[tuple[str, Section]]:
+        if subslice is None:
+            subslice = slice(len(prefix), None)
         for key, value in self.items():
             if key.startswith(prefix):
-                yield (key[prefix_len:], value)
+                yield (key[subslice], value)
 
     @staticmethod
     def parse_minimum_seed(s: str, sect_name: str='[Palette]') -> int:
@@ -179,7 +180,7 @@ class Config(configparser.ConfigParser):
             group_prefix = self['Palette']['group prefix']
         groups = dict(
             (key, value)
-            for key, section in self._sections_prefixed(group_prefix)
+            for key, section in self._sections_prefixed(group_prefix, slice(None, None))
             if (value := {k: v for k, v in section.items() if v is None})
         )
         if not groups:
