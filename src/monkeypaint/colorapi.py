@@ -31,11 +31,11 @@ class ColorAPIClient:
         self.get_func = get_func
         self.url = url
 
-    def get_palette(self, seed: Color, count: int, mode: str) -> Iterator[Color]:
+    def get_palette(self, base_color: Color, count: int, mode: str) -> Iterator[Color]:
         params = {
             'count': count,
             'format': 'json',
-            'hex': seed.hex_format(''),
+            'hex': base_color.hex_format(''),
             'mode': mode,
         }
         response = self.get_func(self.url, headers=self.HEADERS, params=params)

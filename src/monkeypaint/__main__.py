@@ -142,7 +142,7 @@ class Config(configparser.ConfigParser):
         }
         self['Palette'] = {
             'group prefix': 'Group',
-            'minimum seed': '384',
+            'minimum base': '384',
         }
         self._color_maker: Optional[colorapi.ColorAPIClient] = None
 
@@ -154,26 +154,26 @@ class Config(configparser.ConfigParser):
                 yield (key[subslice], value)
 
     @staticmethod
-    def parse_minimum_seed(s: str, sect_name: str='[Palette]') -> int:
+    def parse_minimum_base(s: str, sect_name: str='[Palette]') -> int:
         try:
-            seed = int(s)
+            base = int(s)
         except ValueError as error:
-            raise ConfigurationError(error.args[0], 'minimum seed', sect_name)
+            raise ConfigurationError(error.args[0], 'minimum base', sect_name)
         else:
-            max_seed = 255 * 3
-            if 0 <= seed <= max_seed:
-                return seed
+            max_base = 255 * 3
+            if 0 <= base <= max_base:
+                return base
             else:
-                raise ConfigurationError(f"not in range 0-{max_seed}", 'minimum seed', sect_name)
+                raise ConfigurationError(f"not in range 0-{max_base}", 'minimum base', sect_name)
 
-    def get_palette(self, seed: Color, count: int, *, fn: bool=False) -> Iterator[Color]:
+    def get_palette(self, base: Color, count: int, *, fn: bool=False) -> Iterator[Color]:
         if self._color_maker is None:
             from . import colorapi
             self._color_maker = colorapi.ColorAPIClient(
                 url=self['ColorAPI'].get('url', colorapi.ColorAPIClient.URL),
             )
         mode = self['ColorAPI']['fn mode' if fn else 'mode']
-        return self._color_maker.get_palette(seed, count, mode)
+        return self._color_maker.get_palette(base, count, mode)
 
     def key_color_groups(self, group_prefix: Optional[str]=None) -> Mapping[str, Section]:
         if group_prefix is None:
@@ -203,13 +203,13 @@ class Config(configparser.ConfigParser):
             closefd = True
         return open(open_arg, 'w', closefd=closefd, encoding='ascii', newline='\r\n')
 
-    def random_seed(self, minimum_seed: Optional[int]=None) -> Color:
-        if minimum_seed is None:
-            minimum_seed = self.parse_minimum_seed(self['Palette']['minimum seed'])
-        minimum_seed = min(255 * 3, minimum_seed)
-        r = random.randint(max(0, minimum_seed - 255 * 2), 255)
-        g = random.randint(max(0, minimum_seed - r - 255), 255)
-        b = random.randint(max(0, minimum_seed - r - g), 255)
+    def random_base(self, minimum_base: Optional[int]=None) -> Color:
+        if minimum_base is None:
+            minimum_base = self.parse_minimum_base(self['Palette']['minimum base'])
+        minimum_base = min(255 * 3, minimum_base)
+        r = random.randint(max(0, minimum_base - 255 * 2), 255)
+        g = random.randint(max(0, minimum_base - r - 255), 255)
+        b = random.randint(max(0, minimum_base - r - g), 255)
         return Color(r, g, b)
 
     def setup_logging(self, level: Optional[str]=None) -> None:
@@ -229,13 +229,13 @@ class Config(configparser.ConfigParser):
 def parse_arguments(arglist: Optional[Sequence[str]]=None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog='monkeypaint',
-        usage="%(prog)s [-c SEED] [-g GROUP] [other options]",
+        usage="%(prog)s [-c BASE] [-g GROUP] [other options]",
         description="Generate lighting profiles for the Kinesis Freestyle Edge",
     )
     parser.add_argument(
-        '--color-seed', '-c',
-        metavar='SEED',
-        help="Seed color for the generated palette. You can specify a number"
+        '--base-color', '--color', '-c',
+        metavar='BASE',
+        help="Base color for the generated palette. You can specify a number"
         " between 0-765 to pick a random color with at least that much RGB; or"
         " specify a color with a 3- or 6-digit hex color code.",
     )
@@ -285,16 +285,16 @@ def parse_arguments(arglist: Optional[Sequence[str]]=None) -> argparse.Namespace
         except KeyError:
             parser.error(f"unknown log level {args.log_level!r}")
 
-    args.int_seed = None
-    args.hex_seed = None
-    if args.color_seed is not None:
+    args.int_base = None
+    args.hex_base = None
+    if args.base_color is not None:
         try:
-            args.int_seed = Config.parse_minimum_seed(args.color_seed, 'arguments')
+            args.int_base = Config.parse_minimum_base(args.base_color, 'arguments')
         except ConfigurationError as error:
             try:
-                args.hex_seed = Color.from_hex(args.color_seed)
+                args.hex_base = Color.from_hex(args.base_color)
             except ValueError:
-                parser.error(f"seed color {args.color_seed!r} is not hex or a minimum color")
+                parser.error(f"base color {args.base_color!r} is not hex or a minimum color")
 
     return args
 
@@ -309,13 +309,13 @@ def main(arglist: Optional[Sequence[str]]=None) -> int:
         config.setup_logging(args.log_level)
     logger.debug("read configuration file %s", args.configuration_file)
 
-    seed_color: Color = args.hex_seed or config.random_seed(args.int_seed)
+    base_color: Color = args.hex_base or config.random_base(args.int_base)
     color_groups = KeyColorGroups.from_config(config.key_color_groups(args.configuration_group))
     logger.info("generating a palette from %s with %s colors",
-                seed_color, color_groups.group_count)
+                base_color, color_groups.group_count)
     with config.output_file(args.output_file) as out_file:
         for fn in (False, True):
-            colors = config.get_palette(seed_color, color_groups.group_count, fn=fn)
+            colors = config.get_palette(base_color, color_groups.group_count, fn=fn)
             for line in color_groups.led_lines(colors, fn=fn):
                 out_file.write(line)
     return os.EX_OK
