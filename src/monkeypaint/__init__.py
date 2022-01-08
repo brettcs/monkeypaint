@@ -219,12 +219,8 @@ class Color(NamedTuple):
     @classmethod
     def from_hex(cls, s: str) -> 'Color':
         s = s.removeprefix('#')
-        length = len(s)
-        if length == 3:
-            step = 1
-        elif length == 6:
-            step = 2
-        else:
+        step, rem = divmod(len(s), 3)
+        if rem or not 1 <= step <= 2:
             raise ValueError("color must be 3 or 6 hex characters")
         rep = 3 - step
         r = int(s[step * 0:step * 1] * rep, 16)
