@@ -6,7 +6,7 @@ Monkeypaint writes lighting profiles for the Kinesis Gaming Freestyle Edge RGB k
 
 ## Why I Wrote Monkeypaint
 
-![A clip from BoJack Horseman where Wanda exclaims over a tablet, "Ooh, cool! I love stupid bullshit like this!"](https://tv-memes.getyarn.io/yarn-clip/beec45e8-bc62-42cd-97b9-c2fd53d39fdb/gif)
+![A clip from BoJack Horseman where Wanda exclaims over a tablet, "Ooh, cool! I love stupid bullshit like this!"](https://y.yarn.co/beec45e8-bc62-42cd-97b9-c2fd53d39fdb_text.gif)
 
 More seriously: I like changing my keyboard's colors occasionally, but Kinesis' own software is tedious to use, and I have to boot to Windows to use it. Monkeypaint lets me change colors whenever I want with a quick command, and the results usually look nice. (Sometimes I get a bad combination of colors with my key groupings, but then I just run it again to get a different palette.)
 
