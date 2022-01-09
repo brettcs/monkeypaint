@@ -65,12 +65,12 @@ For most keys, the name you use in configuration is the name that's printed on t
   ⑥                   | `hotkey6`, `hk6`
   ⑦                   | `hotkey7`, `hk7`
   ⑧                   | `hotkey8`, `hk8`
-  ``` ~``             | `grave`, `tilde`
+  `` ` ~ ``           | `grave`, `tilde`
   `- _`               | `dash`, `hyphen`, `hyph`
   `= +`               | `equal`, `equals`, `eq`
   `[ {`               | `openbracket`, `openbrace`, `obracket`, `obrace`
   `] }`               | `closebracket`, `closebrace`, `cbracket`, `cbrace`
-  `\ |`               | `backslash`, `bslash`
+  `\ \|`              | `backslash`, `bslash`
   `; :`               | `colon`
   `' "`               | `quote`, `apostrophe`, `apos`
   `, <`               | `comma`, `com`
@@ -106,7 +106,7 @@ For convenience, Monkeypaint recognizes names to address common sets of keys. Yo
   `hotkeys`, `hot`                      | The Kinesis Logo key and hotkeys ① through ⑧
   `meta`                                | Caps, Ctrl, Alt, and Shift (both sides)
   `navigation`, `nav`                   | Home, End, Page Up, and Page Down
-  `punctuation`, `punc`                 | The keys ``` - = [ ] \ ; ' , . /``
+  `punctuation`, `punc`                 | The keys `` ` - = [ ] \ ; ' , . / ``
   `row1`                                | The top row of keys, from the Kinesis logo key through Delete
   `row2`                                | The second row of keys, from hotkey ① through Home
   `row3`                                | The third row of keys, from hotkey ③ through End
