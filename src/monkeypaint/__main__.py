@@ -231,6 +231,8 @@ def parse_arguments(arglist: Optional[Sequence[str]]=None) -> argparse.Namespace
         prog='monkeypaint',
         usage="%(prog)s [-c BASE] [-g GROUP] [other options]",
         description="Generate lighting profiles for the Kinesis Freestyle Edge",
+        epilog="""All listed defaults are built into the program, and may be
+overridden by your configuration file.""",
     )
     parser.add_argument(
         '--base-color', '--color', '-c',
