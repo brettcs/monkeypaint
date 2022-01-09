@@ -99,7 +99,7 @@ For convenience, Monkeypaint recognizes names to address common sets of keys. Yo
   `actions`, `action`, `act`            | Escape, Print Screen, Pause, and Windows logo
   `alphabet`, `alpha`                   | All the letters
   `digits`, `digit`                     | All the numbers
-  `alphanumeric`, `alpha`               | All the letters and numbers
+  `alphanumeric`, `alnum`               | All the letters and numbers
   `arrows`, `arrow`                     | All four navigation arrows
   `editing`, `edit`                     | Backspace, Delete, Enter, and Tab
   `function`, `func`                    | F1 through F12
