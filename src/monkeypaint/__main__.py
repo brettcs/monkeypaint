@@ -43,8 +43,6 @@ from requests.exceptions import HTTPError, RequestException
 Section = Mapping[str, str]
 T = TypeVar('T')
 
-_run_main = __name__ == '__main__'
-
 class ConfigurationError(ValueError):
     def __init__(self,
                  error: str,
@@ -212,8 +210,8 @@ class Config(configparser.ConfigParser):
         b = random.randint(max(0, minimum_base - r - g), 255)
         return Color(r, g, b)
 
-    def setup_logging(self, level: Optional[str]=None) -> None:
-        root = {
+    def setup_logging(self, level: Optional[str]=None, logger: logging.Logger=logger) -> None:
+        logger_config = {
             'handlers': self['Logging']['handlers'].split(),
             'level': (self['Logging']['level'] if level is None else level).upper(),
         }
@@ -221,7 +219,7 @@ class Config(configparser.ConfigParser):
             'disable_existing_loggers': False,
             'formatters': dict(self._sections_prefixed('LogFormatter ')),
             'handlers': dict(self._sections_prefixed('LogHandler ')),
-            'root': root,
+            'loggers': {logger.name: logger_config},
             'version': 1,
         })
 
@@ -300,15 +298,13 @@ overridden by your configuration file.""",
 
     return args
 
-def main(arglist: Optional[Sequence[str]]=None) -> int:
-    if _run_main:
-        sys.excepthook = ExceptHook()
+def main(arglist: Optional[Sequence[str]]=None, main_logger: Optional[logging.Logger]=None) -> int:
     args = parse_arguments(arglist)
     config = Config()
     with open(args.configuration_file) as conffile:
         config.read_file(conffile)
-    if _run_main:
-        config.setup_logging(args.log_level)
+    if main_logger is not None:
+        config.setup_logging(args.log_level, main_logger)
     logger.debug("read configuration file %s", args.configuration_file)
 
     base_color: Color = args.hex_base or config.random_base(args.int_base)
@@ -322,5 +318,9 @@ def main(arglist: Optional[Sequence[str]]=None) -> int:
                 out_file.write(line)
     return os.EX_OK
 
-if _run_main:
-    exit(main())
+def entry_point(arglist: Optional[Sequence[str]]=None) -> int:
+    sys.excepthook = ExceptHook()
+    return main(arglist, logging.getLogger())
+
+if __name__ == '__main__':
+    exit(entry_point())
